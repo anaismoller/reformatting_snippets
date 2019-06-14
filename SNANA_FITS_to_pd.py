@@ -1,16 +1,18 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
+from pathlib import Path
 from astropy.table import Table
 
 """
     SNANA simulation/data format to pandas
 """
 
-def read_fits(fname):
+def read_fits(fname,drop_separators=False):
     """Load SNANA formatted data and cast it to a PANDAS dataframe
 
     Args:
         fname (str): path + name to PHOT.FITS file
+        drop_separators (Boolean): if -777 are to be dropped
 
     Returns:
         (pandas.DataFrame) dataframe from PHOT.FITS file (with ID)
@@ -43,8 +45,36 @@ def read_fits(fname):
         arr_ID[start:end] = df_header.SNID.iloc[counter - 1]
     df_phot["SNID"] = arr_ID
 
+    if drop_separators:
+        df_phot = df_phot[df_phot.MJD != -777.000]
+
     return df_header, df_phot
 
-    
-# Use example
-df_header, df_phot = read_fits('./raw/DES_Ia-0001_PHOT.FITS')
+def save_fits(df, fname):
+    """Save data frame in fits table
+
+    Arguments:
+        df {pandas.DataFrame} -- data to save
+        fname {str} -- outname, must end in .FITS
+    """
+
+    keep_cols = df.keys()
+    df = df.reset_index()
+    df = df[keep_cols]
+
+    outtable = Table.from_pandas(df)
+    Path(fname).parent.mkdir(parents=True, exist_ok=True)
+    outtable.write(fname, format='fits', overwrite=True)
+
+#   
+# Use examples
+#
+
+# SNANA.FITS to pd
+df_header, df_phot = read_fits('./raw/DES_Ia-0001_PHOT.FITS', drop_separators=True)
+
+# pd to FITS
+# this saves the whole data frame as a 1-D FITS table
+save_fits(df_header, "DES_Ia-0001_HEAD.FITS")
+
+
