@@ -7,7 +7,8 @@ from astropy.table import Table
     SNANA simulation/data format to pandas
 """
 
-def read_fits(fname,drop_separators=False):
+
+def read_fits(fname, drop_separators=False):
     """Load SNANA formatted data and cast it to a PANDAS dataframe
 
     Args:
@@ -20,7 +21,7 @@ def read_fits(fname,drop_separators=False):
     """
 
     # load photometry
-    dat = Table.read(fname, format='fits')
+    dat = Table.read(fname, format="fits")
     df_phot = dat.to_pandas()
     # failsafe
     if df_phot.MJD.values[-1] == -777.0:
@@ -50,6 +51,7 @@ def read_fits(fname,drop_separators=False):
 
     return df_header, df_phot
 
+
 def save_fits(df, fname):
     """Save data frame in fits table
 
@@ -64,17 +66,20 @@ def save_fits(df, fname):
 
     outtable = Table.from_pandas(df)
     Path(fname).parent.mkdir(parents=True, exist_ok=True)
-    outtable.write(fname, format='fits', overwrite=True)
+    outtable.write(fname, format="fits", overwrite=True)
 
-#   
+
+#
 # Use examples
 #
 
 # SNANA.FITS to pd
-df_header, df_phot = read_fits('./raw/DES_Ia-0001_PHOT.FITS', drop_separators=True)
+df_header, df_phot = read_fits("./raw/DES_Ia-0001_PHOT.FITS", drop_separators=True)
+
+# save one csv
+df_out = pd.merge(df_header, df_phot, on="SNID", how="left")
+df_out.to_csv("df_merged.csv")
 
 # pd to FITS
 # this saves the whole data frame as a 1-D FITS table
-save_fits(df_header, "DES_Ia-0001_HEAD.FITS")
-
-
+# save_fits(df_header, "DES_Ia-0001_HEAD.FITS")
